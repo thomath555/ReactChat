@@ -1,6 +1,8 @@
 import React,{Component} from 'react';
 import { Chat, Channel, ChannelList, Window } from 'stream-chat-react';
 import { ChannelHeader, MessageList } from 'stream-chat-react';
+import axios from 'axios';
+import Pusher from 'pusher-js';
 import { MessageInput, Thread } from 'stream-chat-react';
 import { StreamChat } from 'stream-chat';
 import 'stream-chat-react/dist/css/index.css';
@@ -28,6 +30,34 @@ class App extends React.Component {
     coversation: false,
     toggle:false
 }
+
+componentDidMount() {
+  const pusher = new Pusher('c8cba20ff21ea1f6857f', {
+    cluster: 'ap2',
+    encrypted: true
+  });
+  axios.get('https://staging-be.insent.ai?publisher_key=jHeXdnR4k2Lvs9rZmfwU').then(data => {
+    console.log(data);
+  });
+  const channel = pusher.subscribe('chat');
+  channel.bind('message', data => {
+    this.setState({ chats: [...this.state.chats, data], test: '' });
+    console.log(data);
+  });
+}
+
+handleTextChange = (e) =>  {
+  if (e.keyCode === 13) {
+    const payload = {
+      username: this.state.username,
+      message: this.state.text
+    };
+    axios.post('https://staging-be.insent.ai?publisher_key=jHeXdnR4k2Lvs9rZmfwU', payload);
+  } else {
+    this.setState({ text: e.target.value });
+  }
+}
+
 
 backBtnHandler = () => {
   this.setState({
